@@ -1,15 +1,138 @@
 package main.algospot;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * 
  * 난이도 하
- * 
- * 
- * 
+ * algospot tutorial _  BRAVEDUCK
  * @author SIDeok
  */
 public class BRAVEDUCK {
-
 	
+	/*
+	 * 알고리즘 설계.
+	 * 1. 특정 시작지점과 시작지점을 제외한 나머지 징검다리를 roop를 돌며 건너는 케이스를 찾는다.
+	 * 2. 찾은 징검다리와 종료지점이 건널수 있는 거리인지 체크한다. -> 건널수 있는 거리이면 print("YES"); return;
+	 * 3. 찾은 징검다리가 아직 종료지점에 닫지 못했다면 함수를 재귀호출하여 다음 징검다리를 찾는다.
+	 * 4. 최종 징검다리에 도달아였으나 끝점이 아닐경우 print("NO"); return;
+	 */
+	
+	public static void main(String[] args) {
+		
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		
+		// 입력값을 저장해놓는 String array
+		ArrayList<String> arguments = new ArrayList<String>(); 
+		
+		try {
+			int  nRoopCnt = Integer.parseInt(br.readLine()); // 최초 입력은 반복횟수
+			String[] res = {"NO", "NO"};
+			for(int i = 0; i < nRoopCnt; i++) {
+				
+				int nJumpLength = Integer.parseInt(br.readLine()); // 점프거리
+				int[] arrStartCor =  stringToArr(br.readLine()); // 시작좌표
+				int[] arrEndCor =  stringToArr(br.readLine()); // 목표좌표
+				int nNodeCnt = Integer.parseInt(br.readLine()); // 징검다리 개수
+				
+				boolean[][] arrDist = new boolean[nNodeCnt+2][nNodeCnt+2];
+				
+				ArrayList<int[]> listNode = new ArrayList<int[]>(); // 징검다리 ArrayList 에 담기
+				listNode.add(arrStartCor); // 출발점
+				for(int j = 0; j < nNodeCnt; j++) {
+					listNode.add(stringToArr(br.readLine()));
+				}
+				listNode.add(arrEndCor); // 도착점
+				
+				for(int x = 0; x < listNode.size(); x++) {
+					for(int y = 0; y < listNode.size(); y++) {
+						if(x != y && getLength(listNode.get(x), listNode.get(y)) <= nJumpLength ) {
+							arrDist[x][y] = true;
+						} else {
+							arrDist[x][y] = false;
+						}
+					}
+				}
+				
+				boolean[] arrHist = new boolean[nNodeCnt+2];
+				int baseIndex = 0;
+				arrHist[baseIndex] = true;
+				boolean flag = true;
+				while(flag) {
+					for(int y = 0; y < listNode.size(); ) {
+						if(baseIndex != y && arrDist[baseIndex][y] && !arrHist[y]) {
+							arrHist[y] = true;
+							baseIndex = y;
+							y = 0; 
+							continue;
+						} else if(y == (listNode.size() - 1)) {
+							flag = false;
+							if(baseIndex == (listNode.size() - 1)) {
+								res[i] = "YES";
+							}
+							break;
+						} else {
+							y++;
+						}
+					}
+				}
+			}
+			
+			for(String s : res) System.out.println(s);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				br.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	/*********************
+	 * 두 좌표값의 거리를 구하는 메서드
+	 *********************/
+	public static double getLength(int[] pStartCor, int[] pEndCor) {
+		return Math.sqrt((pStartCor[0] - pEndCor[0])*(pStartCor[0] - pEndCor[0]) + (pStartCor[1] - pEndCor[1])*(pStartCor[1] - pEndCor[1]) );
+	}
+	
+	/**************************************
+	 * String셋으로 넘어온 좌표값을 int array 로 변경하는 메서드
+	 **************************************/
+	public static int[] stringToArr(String str) {
+		String[] strSet = str.split(" ");
+		int[] rtnArr = {Integer.parseInt(strSet[0]), Integer.parseInt(strSet[1])};
+		return rtnArr;
+	}
+	
+	/**************************************
+	 * 말단노드 체크 함수(재귀하며 최종 노드까지의 경로를 탐색한다.)
+	 **************************************/
+	public static int chkRoot(int[] pStartCor, int[] pEndCor, int pJumpLength, List<int[]> pNodeList) {
+
+		if(getLength(pStartCor, pEndCor) <= pJumpLength) {
+			return 1;
+		}
+		
+		for(int i = 0; i < pNodeList.size(); i++) {
+			if(getLength(pStartCor, pNodeList.get(i)) <= pJumpLength) {
+				int[] arrNewStartCor = pNodeList.get(i);
+				List<int[]> listNewNode = pNodeList;
+				listNewNode.remove(i); // 선택된 노드는 제거
+				return chkRoot(arrNewStartCor, pEndCor, pJumpLength, listNewNode);
+			}
+		}
+		
+		return 0;
+	}
 	
 	
 }
@@ -51,6 +174,7 @@ Pekaz는 언제건 자신이 위치한 곳에서 직선거리가 J 이하인 곳으로 뛰어서 이동할 수 
 9 7
 6 4
 4 4
+
 예제 출력
 YES
 NO
